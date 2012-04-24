@@ -1,0 +1,54 @@
+<html>
+	<head>
+		<script type="text/javascript">
+			var rooms = new Array();
+			var currentRoom = 0;
+		
+			rooms[rooms.length] = new Room(0, "First room", "First option", 1, "Second option", 2, "Third option", 3);
+			rooms[rooms.length] = new Room(1, "Second room", "First option", 1, "Second option", 2, "Third option", 3);
+			rooms[rooms.length] = new Room(2, "Third room", "First option", 1, "Second option", 2, "Third option", 3);
+			rooms[rooms.length] = new Room(3, "Fourth room", "First option", 1, "Second option", 2, "Third option", 3);
+		
+			function button1Click() {
+				currentRoom = rooms[currentRoom].opid1;
+				display();
+			}
+			function button2Click() {
+				currentRoom = rooms[currentRoom].opid2;
+				display();
+			}
+			function button3Click() {
+				currentRoom = rooms[currentRoom].opid3;	
+				display();			
+			}
+			
+			function Room(id, des, op1, opid1, op2, opid2, op3, opid3) {
+				this.id = id;
+				this.des = des;
+				this.op1 = op1, this.opid1 = opid1;
+				this.op2 = op2, this.opid2 = opid2;
+			 	this.op3 = op3, this.opid3 = opid3;		
+			}
+			
+			function display() {
+				document.getElementById("description").value=rooms[currentRoom].des;
+				document.getElementById("option1").value=rooms[currentRoom].op1;
+				document.getElementById("option2").value=rooms[currentRoom].op2;
+				document.getElementById("option3").value=rooms[currentRoom].op3;
+			}
+		</script>
+	</head>
+	<body onload="display()">
+		<form id="myForm">
+			<center>
+			<textArea id="description" rows="15" cols="60"></textArea><br>
+			<textArea id="option1" rows="3" cols="30" readonly="true"></textArea>
+			<button type="button" onclick="button1Click()">Button 1</button><br>
+			<textArea id="option2" rows="3" cols="30" readonly="true"></textArea>
+			<button type="button" onclick="button2Click()">Button 2</button><br>
+			<textArea id="option3" rows="3" cols="30" readonly="true"></textArea>	
+			<button type="button" onclick="button3Click()">Button 3</button>
+			</center>
+		</form>
+	</body>
+</html>
