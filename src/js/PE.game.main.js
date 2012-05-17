@@ -1,177 +1,230 @@
 (function() {
     'use strict';
 
-    var canvas = document.getElementById("canvas");
-    var context = canvas.getContext("2d");
+    // Initialise canvas variables
+    var canvas = document.getElementById("canvas"), context = canvas.getContext("2d");
 
-    // Debug counters
-    var drawFrame = 0;
-    var updateFrame = 0;
-    var debug = false;
+    // Debug
+    var drawFrame = 0, updateFrame = 0, debug = false, debugEnabled = true;
 
-    // Frame control
-    var timeCount;
-    var lastFrameTime = 0.0;
-    var cyclesLeftOver = 0.0;
-    var MAXIMUM_FRAME_RATE = 60;
-    var MINIMUM_FRAME_RATE = 30;
-    var UPDATE_INTERVAL = 1.0 / MAXIMUM_FRAME_RATE;
-    var MAX_CYCLES_PER_FRAME = MAXIMUM_FRAME_RATE / MINIMUM_FRAME_RATE;
+    // Objects
+    var player = new Player(canvas), walls = new Array(), smoke = new Array();
 
-    var player = new Player(canvas);
-    var walls = new Array();
-    var smoke = new Array();
-    var smokeCounter = 0;
-    var smokeFrequency = 1;
-    var score = 0;
-    var level = 1;
-    var levelCounter = 0;
-    var levelFrequency = 1000;
-    var levelDelay = 0;
-    var levelMaxDelay = 200;
+    // Player smoke settings
+    var smokeFrequency = 1, smokeSizeX = 2, smokeSizeY = 2, smokeGrowthX = 0.2, smokeGrowthY = 0.2, smokeColour = '#FFFFFF';
 
     // Game settings
-    var gravityDef = 0.20;
-    var resistanceDef = 0.02;
-    var speedDef = 4;
-    var frequencyDef = 60;
-    var frequencyCounter = 0;
-    var floorDef = 60, ceilingDef = 50;
-    var wallMinDef = 50, wallMaxDef = 100;
-    var wallsOn = true;
-    var gameOn = true;
+    var levelFrequency = 1000, levelMaxDelay = 200, gravityDef = 0.20, resistanceDef = 0.02, speedDef = 4, frequencyDef = 60;
+    var frequencyCounter = 0, floorDef = 60, ceilingDef = 50, wallMinDef = 50, wallMaxDef = 100, wallWidth = 15;
 
-    var gravity = gravityDef;
-    var resistance = resistanceDef;
-    var speed = speedDef;
-    var frequency = frequencyDef;
-    var floor = floorDef;
-    var ceiling = ceilingDef;
-    var wallMin = wallMinDef;
-    var wallMax = wallMaxDef;
+    // In-game variables
+    var score = 0, smokeCounter = 0, level = 1, levelCounter = 0, levelDelay = 0, wallsOn = true, textGetReady = true;
+    var textLevelClear = false, textSpeedIncrease = false, textWallFrequency = false, textBordersLowered = false, textWallSizeIncreased = false;
 
-    var textGetReady = true;
-    var textLevelClear = false;
-    var textSpeedIncrease = false;
-    var textWallFrequency = false;
-    var textBordersLowered = false;
-    var textWallSizeIncreased = false;
+    // Initialise game settings
+    var gravity, resistance, speed, frequency, floor, ceiling, wallMin, wallMax;
+    setDefaults();
 
-    // Load images
-    var logo = new Image();
-    logo.src = "img/policyexpert-logo.png";
-    var bg = new Image();
-    bg.src = "img/bg.png";
+    // Load image assets and gradients
+    var logo = new Image(), wallGradient = context.createLinearGradient(0, 0, canvas.width, 0);
+    loadAssets();
 
-    var wallGradient = context.createLinearGradient(0, 0, canvas.width, 0);
-    wallGradient.addColorStop(0.0, '#CD007A');
-    wallGradient.addColorStop(1.0, '#403592');
+    var fps = 60;
 
-    // Fixed time step control
-    function run() {
-        var currentTime;
-        var updateIterations;
-        currentTime = (new Date).getTime();
-        updateIterations = ((currentTime - lastFrameTime) + cyclesLeftOver);
+    // Variable time step loop
+    var run = (function() {
+        var loops = 0, skipTicks = 1000 / fps,
+            maxFrameSkip = 10,
+            nextGameTick = (new Date).getTime();
 
-        if(updateIterations > 0.0333) //(MAX_CYCLES_PER_FRAME * UPDATE_INTERVAL))
-            updateIterations = 0.0333; //(MAX_CYCLES_PER_FRAME * UPDATE_INTERVAL);
+        return function() {
+            loops = 0;
 
-        while(updateIterations > UPDATE_INTERVAL) {
-            updateIterations -= UPDATE_INTERVAL;
+            while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
+                update();
+                nextGameTick += skipTicks;
+                loops++;
+            }
 
-            update();
+            draw();
+        };
+    })();
+
+    // Only draw when there is something to draw
+    (function() {
+        var onEachFrame;
+        if (window.webkitRequestAnimationFrame) {
+            onEachFrame = function(cb) {
+                var _cb = function() { cb(); webkitRequestAnimationFrame(_cb); }
+                _cb();
+            };
+        } else if (window.mozRequestAnimationFrame) {
+            onEachFrame = function(cb) {
+                var _cb = function() { cb(); mozRequestAnimationFrame(_cb); }
+                _cb();
+            };
+        } else {
+            onEachFrame = function(cb) {
+                setInterval(cb, 1000 / 60);
+            }
         }
-        cyclesLeftOver = updateIterations;
-        lastFrameTime = currentTime;
 
-        draw();
-    }
+        window.onEachFrame = onEachFrame;
+    })();
 
-    timeCount = setInterval(run, 1000 / MAXIMUM_FRAME_RATE);
+    // Start the game
+    window.onEachFrame(run);
 
     function update() {
+        if (debugEnabled) { updateFrame++; }// Increase the update cycle counter
+
+        if (shouldANewLevelBeStarted()) {
+            startLevel();
+        } else {
+            wallsOn = false; // Don't create any walls when in-between levels
+        }
+
+        updateLevelDelayCounterIfWallsAreOff();
+
+        updateLevelCounterIfPlayerIsAlive();
+
+        if (isEndOfLevel()) {
+            endLevel();
+        }
+
+        if (shouldNewWallBeCreated()) {
+            createNewWall();
+        }
+
+        updateWalls();
+
+        player.update();
+
+        updateSmoke();
+
+        increaseScoreIfPlayerIsAlive();
+
+        ifSpaceBarPressedAndPlayerDeadRestartGame();
+
+        ifDKeyPressedSwitchOnDebugInfoIfDebugEnabled();
+    }
+
+    function draw() {
+        if (debugEnabled) { drawFrame++;} // Increase the draw cycle counter
+
+        canvas.width = canvas.width; // Clear the canvas
+
+        drawBackground();
+
+        drawBorder();
+
+        drawWalls();
+
+        drawText();
+
+        drawImage(player);
+
+        drawSmoke();
+
+        drawDebugInfo();
+
+        context.stroke(); // Update the canvas
+    }
+
+    // Update functions ***************************************************************************************************************
+
+    function updateLevelDelayCounterIfWallsAreOff() {
         if (!wallsOn ) {
             levelDelay++;
         }
-        if(levelDelay < levelMaxDelay) {
-            wallsOn = false;
-        } else {
-            wallsOn = true;
-            textGetReady = false;
-            textLevelClear = false;
-            textSpeedIncrease = false;
-            textWallFrequency = false;
-            textBordersLowered = false;
-            textWallSizeIncreased = false;
+    }
 
+    function shouldANewLevelBeStarted() {
+        if(levelDelay < levelMaxDelay) {
+            return false;
+        } else {
+            return true;
         }
-        updateFrame++;
+    }
+
+    function updateLevelCounterIfPlayerIsAlive() {
         if(player.alive) {
-            score++;
             if(wallsOn) {
                 levelCounter++;
             }
+        }
+    }
+
+    function isEndOfLevel() {
+        if(player.alive) {
             if(levelCounter > levelFrequency) {
                 levelDelay = 0;
                 wallsOn = false;
                 if (walls.length == 0) {
-                    nextLevel();
+                    return true;
                 }
             }
         }
+        return false;
+    }
 
-        // Update smoke
-        if(player.alive) {
-            smokeCounter++;
-            if(smokeCounter > smokeFrequency) {
-                smokeCounter = 0;
-                smoke[smoke.length] = new Exhaust();
-            }
-        }
-
-        // Check if new wall should be created
-        if(wallsOn) {
-            frequencyCounter++;
-            if(frequencyCounter >= frequency) {
-                walls[walls.length] = new Wall(wallMin, wallMax);
-                frequencyCounter = 0;
-            }
-        }
-
-        // Update walls
+    function updateWalls() {
         for(var wall in walls) {
             walls[wall].update();
         }
+    }
 
-        // Update player
-        player.update();
+    function shouldNewWallBeCreated() {
+        if(wallsOn) {
+            frequencyCounter++;
+            if(frequencyCounter >= frequency) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function createNewWall() {
+        walls[walls.length] = new Wall(wallMin, wallMax);
+        frequencyCounter = 0;
+    }
+
+    function updateSmoke() {
         for(var exhaust in smoke) {
             smoke[exhaust].update();
         }
 
-        // Collision
-        checkBorderCollision();
-
-        for(var wall in walls) {
-            if(rectIntersect(player, walls[wall])) {
-                player.destory();
-            }
-        }
-
-        // Check for interruptions
-        if(!player.alive) {
-            if(Key.isDown(Key.SPACE)) {
-                restart();
-            }
-        }
-        if(Key.isDown(Key.D)) {
-            debug = !debug;
+        if (shouldNewSmokeParticleBeCreated()) {
+            createNewSmokeParticle();
         }
     }
 
-    function nextLevel() {
-        //setDefaults();
+    function shouldNewSmokeParticleBeCreated() {
+        if(player.alive) {
+            smokeCounter++;
+            if(smokeCounter > smokeFrequency) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function createNewSmokeParticle() {
+        smokeCounter = 0;
+        smoke[smoke.length] = new SmokeParticle();
+    }
+
+    function startLevel() {
+        wallsOn = true;
+        textGetReady = false;
+        textLevelClear = false;
+        textSpeedIncrease = false;
+        textWallFrequency = false;
+        textBordersLowered = false;
+        textWallSizeIncreased = false;
+    }
+
+    function endLevel() {
         levelDelay = 0;
         textLevelClear = true;
         levelCounter = 0;
@@ -243,13 +296,30 @@
         levelCounter = 0;
     }
 
-    function checkBorderCollision() {
+    function isPlayerCollidingWithAnything() {
+        if (isPlayerCollidingWithBorder() || isPlayerCollidingWithWalls()) {
+            return true
+        }
+        return false;
+    }
+
+    function isPlayerCollidingWithWalls() {
+        for(var wall in walls) {
+            if(rectIntersect(player, walls[wall])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function isPlayerCollidingWithBorder() {
         if(player.currentPositionY < ceiling) {
-            player.destroy();
+            return true;
         }
         if(player.currentPositionY + player.sizeY > canvas.height - floor) {
-            player.destroy();
+            return true;
         }
+        return false;
     }
 
     function rectIntersect(arg1, arg2) {
@@ -257,14 +327,14 @@
             if(arg1.currentPositionX < arg2.currentPositionX + arg2.sizeX) {
                 if(arg1.currentPositionY + arg1.sizeY > arg2.currentPositionY) {
                     if(arg1.currentPositionY < arg2.currentPositionY + arg2.sizeY) {
-                        player.destroy();
+                        return true;
                     }
                 }
             }
         }
+        return false;
     }
 
-    // Utiliy function
     function checkCap(pos, arg, cap) {
         if(pos) {
             if(arg > cap) {
@@ -278,58 +348,68 @@
         return arg;
     }
 
-    // Drawing ***************************************************************************************************************
-
-    function draw() {
-        drawFrame++;
-
-        // Clear canvas
-        canvas.width = canvas.width;
-
-        // Draw border, background and UI
-        context.font = 'bold 20px calibri';
-        context.textAlign = "center";
-        context.fillStyle = '#E6E6E6';
-        context.fillRect(0, 0, canvas.width, canvas.height - floor);
-        context.drawImage(logo, 1, canvas.height - 50);
-        //context.drawImage(bg, 0, 0);
-        //context.fillStyle = '#AA0092';
-        context.fillStyle = wallGradient;
-        drawBorder();
-        context.fillText("Score: " + score + "  Level: " + level, canvas.width / 2, ceiling + 20);
-        if(!player.alive) {
-            context.fillText("Press SPACE to restart", canvas.width / 2, canvas.height / 2 + 20);
-        } else {
-            context.fillText("Press the 'up' key to stay in the air", canvas.width / 1.5, canvas.height - floor / 2);
+    function increaseScoreIfPlayerIsAlive() {
+        if(player.alive) {
+            score++;
         }
+    }
 
-        // Draw walls
-        for(var wall in walls) {
-            drawRectangle(walls[wall]);
-        }
+    // Drawing functions ***************************************************************************************************************
 
-        // Draw text
-        drawText();
+    function loadAssets() {
+        // Load images
+        logo.src = "img/policyexpert-logo.png";
 
-        // Draw player
-        drawImage(player);
+        // Load gradient
+        wallGradient.addColorStop(0.0, '#CD007A');
+        wallGradient.addColorStop(1.0, '#403592');
+    }
 
-        context.fillStyle = '#FFFFFF';
-        for(var exhaust in smoke) {
-            drawRectangle(smoke[exhaust]);
-        }
-
+    function drawDebugInfo() {
         if(debug) {
             context.font = 'bold 10px calibri';
             context.textAlign = "left";
             context.fillStyle = '#000000';
             drawDebug();
         }
+    }
 
-        context.stroke();
+    function drawWalls() {
+        context.fillStyle = wallGradient;
+        for(var wall in walls) {
+            drawRectangle(walls[wall]);
+        }
+    }
+
+    function drawSmoke() {
+        context.fillStyle = smokeColour;
+        for(var exhaust in smoke) {
+            drawRectangle(smoke[exhaust]);
+        }
+    }
+
+    function drawBackground() {
+        // Colour background in grey
+        context.fillStyle = '#E6E6E6';
+        context.fillRect(0, 0, canvas.width, canvas.height - floor);
+
+        // Draw policy expert logo
+        context.drawImage(logo, 1, canvas.height - 50);
     }
 
     function drawText() {
+        context.font = 'bold 20px calibri';
+        context.textAlign = "center";
+        context.fillStyle = '#CD007A';
+
+        context.fillText("Score: " + score + "  Level: " + level, canvas.width / 2, ceiling + 20);
+
+        if(!player.alive) {
+            context.fillText("Press SPACE to restart", canvas.width / 2, canvas.height / 2 + 20);
+        } else {
+            context.fillText("Press the 'up' key to stay in the air", canvas.width / 1.5, canvas.height - floor / 2);
+        }
+
         if(textGetReady) {
             context.fillText("Get Ready!", canvas.width / 2, canvas.height / 2);
         }
@@ -362,13 +442,6 @@
         context.fillRect(arg.currentPositionX, arg.currentPositionY, arg.sizeX, arg.sizeY);
     }
 
-    function drawTriangle(arg) {
-        context.moveTo(arg.currentPositionX, arg.currentPositionY);
-        context.lineTo(arg.currentPositionX - (arg.sizeX / 2), arg.currentPositionY + arg.sizeY);
-        context.lineTo(arg.currentPositionX + (arg.sizeX / 2), arg.currentPositionY + arg.sizeY);
-        context.lineTo(arg.currentPositionX, arg.currentPositionY);
-    }
-
     function drawDebug() {
         context.fillText("u: " + updateFrame, 10, 20);
         context.fillText("d: " + drawFrame, 10, 30);
@@ -385,6 +458,7 @@
     };
 
     function drawBorder() {
+        context.fillStyle = wallGradient;
         context.fillRect(0, ceiling, canvas.width, -10);
         context.fillRect(0, canvas.height - floor, canvas.width, 10);
     };
@@ -419,6 +493,23 @@
     window.addEventListener('keydown', function(event) {
         Key.onKeydown(event);
     }, false);
+
+    function ifSpaceBarPressedAndPlayerDeadRestartGame() {
+        if(!player.alive) {
+            if(Key.isDown(Key.SPACE)) {
+                restart();
+            }
+        }
+    }
+
+    function ifDKeyPressedSwitchOnDebugInfoIfDebugEnabled() {
+        if (debugEnabled) {
+            if(Key.isDown(Key.D)) {
+                debug = !debug;
+           }
+        }
+    }
+
     // Classes ****************************************************************************************************************
 
     function Wall(m, M) {
@@ -426,7 +517,7 @@
         this.currentPositionY = ceiling + (Math.random() * (canvas.height - floor * 2));
         this.minSize = m;
         this.maxSize = M;
-        this.sizeX = 15;
+        this.sizeX = wallWidth;
         this.sizeY = this.minSize + Math.random() * this.maxSize;
 
         if(this.currentPositionY < ceiling) {
@@ -466,10 +557,6 @@
     }
 
     Player.prototype.update = function() {
-        // If UP key is pressed use vertical thruster
-        if(Key.isDown(Key.UP) && this.alive) {
-            this.currentVelocityY += this.thrustStrengthY;
-        }
 
         // Check if maximum thrust level has been reached and cap
         this.thrustStrength = checkCap(true, this.thrustStrengthY, this.maxThrustY);
@@ -484,23 +571,34 @@
 
         this.currentPositionX -= this.currentVelocityX;
         this.currentPositionY -= this.currentVelocityY;
+
+        if (player.alive) {
+            // If UP key is pressed use vertical thruster
+            if(Key.isDown(Key.UP) && player.alive) {
+                player.currentVelocityY += player.thrustStrengthY;
+            }
+
+            if (isPlayerCollidingWithAnything()) {
+                player.destroy();
+            }
+        }
     }
 
     Player.prototype.destroy = function() {
         this.alive = false;
     }
 
-    function Exhaust() {
-        this.sizeX = 2;
-        this.sizeY = 2;
+    function SmokeParticle() {
+        this.sizeX = smokeSizeX;
+        this.sizeY = smokeSizeY;
         this.currentPositionX = player.currentPositionX;
         this.currentPositionY = player.currentPositionY + player.sizeY - this.sizeY;
     }
 
-    Exhaust.prototype.update = function() {
+    SmokeParticle.prototype.update = function() {
         this.currentPositionX -= speed;
-        this.sizeX += 0.2;
-        this.sizeY += 0.2;
+        this.sizeX += smokeGrowthX;
+        this.sizeY += smokeGrowthY;
         if(this.currentPositionX + this.sizeX < 0) {
             smoke.splice(0, 1);
         }
