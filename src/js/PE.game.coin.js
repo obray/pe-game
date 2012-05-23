@@ -23,6 +23,7 @@ Coin.prototype.update = function() {
 Coin.prototype.moveIfCollidingWithWall = function() {
     if (isObjectCollidingWithWalls(this)) {
         this.currentPositionY = Game.settings.ceiling + 2;
+        this.currentPositionX -= 47;
     }
 }
 

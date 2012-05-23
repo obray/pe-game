@@ -24,6 +24,15 @@ Player.prototype.update = function() {
 
     if (Game.settings.gameOn) {
        this.applyGravity();
+       this.updateDistance();
+
+        Game.counters.mileage += Game.settings.speed;
+        Game.settings.mileageX -= Game.settings.speed;
+        if (Game.counters.mileage == 1000) {
+            Game.counters.mileage = 0;
+            Game.settings.currentMileage += 100;
+            Game.settings.mileageX = Game.canvas.width;
+        }
     }
 
     this.applyAirResistance();
@@ -45,10 +54,18 @@ Player.prototype.update = function() {
     this.updatePosition();
 }
 
+Player.prototype.updateDistance = function() {
+    if (this.alive) {
+        Game.counters.distance += Game.settings.speed;
+    }
+}
+
 Player.prototype.isPlayerCollidingWithCoins = function() {
     for (var coin in Game.objects.coins) {
         if (isRectIntersect(this, Game.objects.coins[coin]) && Game.objects.coins[coin].alive) {
             Game.counters.score += 100;
+            Game.counters.levelCoins++;
+            Game.counters.totalCoins++;
             Game.objects.coins[coin].alive = false;
         }
     }
@@ -132,4 +149,5 @@ Player.prototype.applyAirResistance = function() {
 
 Player.prototype.destroy = function() {
     this.alive = false;
+    Game.settings.text.getReady = false;
 }

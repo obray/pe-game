@@ -6,12 +6,15 @@ Game.canvas = document.getElementById("canvas");
 Game.context = Game.canvas.getContext("2d");
 
 Game.settings = {
+    currentMileage: 0,
+    mileageX: -100,
+    levelOn: false,
     gameOn: false,
     gravity: 0.2,
     resistance: 0.2,
     speed: 4,
     frequency: 60,
-    floor: 60,
+    floor: 100,
     ceiling: 50,
     wallMin: 50,
     wallMax: 100,
@@ -42,7 +45,7 @@ Game.settings = {
         resistanceDef: 0.2,
         speedDef: 4,
         frequencyDef: 60,
-        floorDef: 60,
+        floorDef: 100,
         ceilingDef: 50,
         wallMinDef: 50,
         wallMaxDef: 100,
@@ -60,12 +63,13 @@ Game.settings = {
         speedIncrease: false,
         wallFrequency: false,
         bordersLowered: false,
-        wallSizeIncreased: false
+        wallSizeIncreased: false,
+        coinsCollected: false
     }
 };
 
 Game.objects = {
-    player: new Player(Game.canvas),
+    player: new Player(),
     walls: new Array(),
     smoke: new Array(),
     coins: new Array()
@@ -73,6 +77,9 @@ Game.objects = {
 
 Game.counters = {
     score: 0,
+    levelCoins: 0,
+    totalCoins: 0,
+    distance: 0,
     smokeCounter: 0,
     level: 1,
     levelCounter: 0,
@@ -80,7 +87,8 @@ Game.counters = {
     wallsOn: true,
     frequencyCounter: 0,
     coinCounter: 0,
-    borderCounter: 0
+    borderCounter: 0,
+    mileage: 540
 };
 
 Game.assets = {

@@ -115,27 +115,36 @@ function drawAllText() {
 
     drawHint();
 
+    if (Game.settings.text.coinsCollected) {
+        drawText("Coins collected this level: " + Game.counters.levelCoins, 0, -20);
+    }
+
     if(Game.settings.text.getReady) {
-        drawCenterText("Get Ready!");
+        drawCenterText("GET READY!");
         if (!Game.settings.gameOn) {
-            drawText("Press 'up' to start", 0, 20);
+            drawText("Press 'UP' to start", 0, 20);
         }
     }
     if(Game.settings.text.levelClear) {
-        drawText("Level Clear", 0, -20);
+        drawText("LEVEL CLEAR", 0, -40);
     }
     if(Game.settings.text.speedIncrease) {
-        drawCenterText("Speed +");
+        drawCenterText("Speed increased!");
     }
     if(Game.settings.text.wallFrequency) {
-        drawCenterText("Wall frequency +");
+        drawCenterText("Wall rate increased!");
     }
     if(Game.settings.text.bordersLowered) {
-        drawCenterText("Borders +");
+        drawCenterText("Borders increased!");
     }
     if(Game.settings.text.wallSizeIncreased) {
-        drawCenterText("Wall Size +");
+        drawCenterText("Wall size increased!");
     }
+
+    Game.context.font = Game.settings.textDefaults.font;
+    Game.context.textAlign = 'left';
+    Game.context.fillStyle = '#FFFFFF';
+    Game.context.fillText(Game.settings.currentMileage +'m', Game.settings.mileageX, Game.canvas.height - Game.settings.floor + 20);
 }
 
 function drawText(arg, argX, argY) {
@@ -153,10 +162,13 @@ function drawScore() {
 
 function drawHint() {
     if(!Game.objects.player.alive) {
-        Game.context.fillText("Press SPACE to restart", Game.canvas.width / 2, Game.canvas.height / 2 + 20);
-    } else {
-        Game.context.fillText("Press the 'up' arrow key to stay in the air", Game.canvas.width / 1.5, Game.canvas.height - 25);
-        Game.context.fillText("Move side to side with the 'left' and 'right' arrow keys", Game.canvas.width / 1.5, Game.canvas.height - 5);
+        Game.context.fillText('GAME OVER', Game.canvas.width / 2, Game.canvas.height / 2 - 40);
+        Game.context.fillText("Total distance travelled: " + Math.round(Game.counters.distance / 10) + 'm', Game.canvas.width / 2, Game.canvas.height / 2);
+        Game.context.fillText("Total coins collected: " + Game.counters.totalCoins, Game.canvas.width / 2, Game.canvas.height / 2 + 20);
+        Game.context.fillText("Press SPACE to restart", Game.canvas.width / 2, Game.canvas.height / 2 + 60);
+         } else {
+        Game.context.fillText("Press the 'UP' arrow key to stay in the air", Game.canvas.width / 1.5, Game.canvas.height - 25);
+        Game.context.fillText("Move side to side with the 'LEFT' and 'RIGHT' arrow keys", Game.canvas.width / 1.5, Game.canvas.height - 5);
     }
 }
 
@@ -184,4 +196,6 @@ function drawDebugInfo() {
     Game.context.fillText("sm: " + Game.objects.smoke.length, 400, 70);
     Game.context.fillText("sc: " + Game.settings.smoke.smokeColour, 400, 80);
     Game.context.fillText("c: " + Game.objects.coins.length, 400, 90);
+    Game.context.fillText("mi: " + Game.settings.currentMileage, 400, 100);
+    Game.context.fillText("di: " + Game.counters.distance, 400, 110);
 }

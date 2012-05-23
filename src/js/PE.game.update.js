@@ -2,13 +2,14 @@ function update() {
     if (Game.settings.debug.debugEnabled) { Game.settings.debug.updateFrame++; } // Increase the update cycle counter
 
     if (shouldANewLevelBeStarted()) {
-        startLevel();
+        if (!Game.settings.levelOn) {
+            startLevel();
+        }
     } else {
         Game.counters.wallsOn = false; // Don't create any walls when in-between levels
     }
 
     if (Game.settings.gameOn) {
-
         updateLevelDelayCounterIfWallsAreOff();
 
         updateLevelCounterIfPlayerIsAlive();
@@ -100,13 +101,17 @@ function shouldANewLevelBeStarted() {
 }
 
 function startLevel() {
-    Game.counters.wallsOn = true;
     Game.settings.text.getReady = false;
     Game.settings.text.levelClear = false;
     Game.settings.text.speedIncrease = false;
     Game.settings.text.wallFrequency = false;
     Game.settings.text.bordersLowered = false;
     Game.settings.text.wallSizeIncreased = false;
+    Game.settings.text.coinsCollected = false;
+
+    Game.counters.levelCoins = 0;
+    Game.counters.wallsOn = true;
+    Game.settings.levelOn = true;
 }
 
 function isEndOfLevel() {
@@ -127,14 +132,14 @@ function endLevel() {
     Game.settings.text.levelClear = true;
     Game.counters.levelCounter = 0;
     Game.counters.level++;
+    Game.settings.text.coinsCollected = true;
+    Game.settings.levelOn = false;
 
     pickRandomModifier();
 }
 
 function pickRandomModifier() {
     var random = Math.round(Math.random() * 4);
-
-    random = 2;
     switch (random) {
         case 1:
             increaseWallFrequency(1.5);
@@ -187,9 +192,16 @@ function restart() {
     Game.settings.text.wallSizeIncreased = false;
     Game.counters.level = 1;
     Game.counters.score = 0;
+    Game.counters.levelCoins = 0;
+    Game.counters.totalCoins = 0;
+    Game.counters.distance = 0;
     Game.counters.levelDelay = 0;
     Game.counters.levelCounter = 0;
+    Game.counters.mileage = 540;
+    Game.settings.mileageX = -100;
+    Game.settings.currentMileage = 0;
     Game.settings.gameOn = false;
+    Game.settings.levelOn = false;
 }
 
 function setDefaultGameSettings() {
