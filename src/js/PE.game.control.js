@@ -31,7 +31,7 @@ window.addEventListener('keydown', function(event) {
 }, false);
 
 function ifSpaceBarPressedAndPlayerDeadRestartGame() {
-    if(!player.alive) {
+    if(!Game.objects.player.alive) {
         if(Key.isDown(Key.SPACE)) {
             restart();
         }
@@ -39,9 +39,9 @@ function ifSpaceBarPressedAndPlayerDeadRestartGame() {
 }
 
 function ifDKeyPressedSwitchOnDebugInfoIfDebugEnabled() {
-    if (debugEnabled) {
+    if (Game.settings.debug.debugEnabled) {
         if(Key.isDown(Key.D)) {
-            debug = !debug;
+            Game.settings.debug.debugOn = !Game.settings.debug.debugOn;
         }
     }
 }

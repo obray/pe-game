@@ -1,9 +1,9 @@
-function Wall(m, M) {
-    this.currentPositionX = canvas.width;
+function Wall() {
+    this.currentPositionX = Game.canvas.width;
     this.currentPositionY;
-    this.minSize = m;
-    this.maxSize = M;
-    this.sizeX = wallWidth;
+    this.minSize = Game.settings.wallMin;
+    this.maxSize = Game.settings.wallMax;
+    this.sizeX = Game.settings.wallWidth;
     this.sizeY;
 
     this.generateWall();
@@ -12,38 +12,33 @@ function Wall(m, M) {
 Wall.prototype.generateWall = function() {
     this.sizeY = this.generateSize();
 
-    this.currentPositionY = this.generatePosition();
-}
-
-Wall.prototype.generatePosition = function() {
-    var derp = Math.random() * (canvas.height - floor - this.sizeY - ceiling);
-    return derp + ceiling;
-
+    this.currentPositionY = generateYPosition(this);
 }
 
 Wall.prototype.generateSize = function() {
-    return this.minSize + Math.random() * this.maxSize;
+    var wallSize = this.minSize + Math.random() * this.maxSize;
+
+    // Ensure there is a gap big enough for the player to fit through
+    var freeSpace = Game.canvas.height - Game.settings.ceiling - Game.settings.floor;
+    if ((freeSpace - wallSize) < (Game.objects.player.sizeY * 3)) {
+        wallSize = freeSpace - (Game.objects.player.sizeY * 3);
+    }
+
+    return wallSize;
 }
 
 Wall.prototype.update = function() {
     this.updatePosition();
 
-    if(this.isWallOffLeftSideOfScreen()) {
+    if(isObjectOffLeftSideOfScreen(this)) {
         this.destroyWall();
     }
 }
 
 Wall.prototype.updatePosition = function() {
-    this.currentPositionX -= speed;
-}
-
-Wall.prototype.isWallOffLeftSideOfScreen = function() {
-    if(this.currentPositionX + this.sizeX < 0) {
-        return true;
-    }
-    return false;
+    this.currentPositionX -= Game.settings.speed;
 }
 
 Wall.prototype.destroyWall = function() {
-    walls.splice(0, 1);
+    Game.objects.walls.splice(0, 1);
 }

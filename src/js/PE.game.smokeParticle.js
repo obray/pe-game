@@ -1,10 +1,10 @@
 function SmokeParticle() {
-    this.size = smokeSize;
-    this.smokeGrowth = smokeGrowth;
-    this.smokeMaxSize = smokeMaxSize;
-    this.smokeColour = smokeColour;
-    this.currentPositionX = player.currentPositionX;
-    this.currentPositionY = player.currentPositionY + player.sizeY - this.size;
+    this.size = Game.settings.smoke.smokeSize;
+    this.smokeGrowth = Game.settings.smoke.smokeGrowth;
+    this.smokeMaxSize = Game.settings.smoke.smokeMaxSize;
+    this.smokeColour = this.setColour();
+    this.currentPositionX = Game.objects.player.currentPositionX;
+    this.currentPositionY = Game.objects.player.currentPositionY + Game.objects.player.sizeY - this.size;
 }
 
 SmokeParticle.prototype.update = function() {
@@ -19,8 +19,23 @@ SmokeParticle.prototype.update = function() {
     }
 }
 
+SmokeParticle.prototype.setColour = function() {
+    var colourY = 0;
+    var colourX = 0;
+
+    if (Game.objects.player.currentVelocityY > 0) {
+        colourY = Math.round(Game.objects.player.currentVelocityY * 10)
+    }
+    if (Game.objects.player.currentVelocityX > 0) {
+        colourX = Math.round(Game.objects.player.currentVelocityX * 10)
+    }
+    var colour = 255 - colourX - colourY;
+    colour = colour.toString(16);
+    return '#' + colour + colour + colour;
+}
+
 SmokeParticle.prototype.moveAndGrowSmokeParticle = function() {
-    this.currentPositionX -= speed;
+    this.currentPositionX -= Game.settings.speed;
     this.size += this.smokeGrowth;
 }
 
@@ -32,7 +47,7 @@ SmokeParticle.prototype.isSmokeParticleOffLeftSideOfScreen = function() {
 }
 
 SmokeParticle.prototype.destroySmokeParticle = function() {
-    smoke.splice(0, 1);
+    Game.objects.smoke.splice(0, 1);
 }
 
 SmokeParticle.prototype.isMaxSizeReached = function() {

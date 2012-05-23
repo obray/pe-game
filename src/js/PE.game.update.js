@@ -1,19 +1,24 @@
 function update() {
-    if (debugEnabled) { updateFrame++; } // Increase the update cycle counter
+    if (Game.settings.debug.debugEnabled) { Game.settings.debug.updateFrame++; } // Increase the update cycle counter
 
     if (shouldANewLevelBeStarted()) {
         startLevel();
     } else {
-        wallsOn = false; // Don't create any walls when in-between levels
+        Game.counters.wallsOn = false; // Don't create any walls when in-between levels
     }
 
-    updateLevelDelayCounterIfWallsAreOff();
+    if (Game.settings.gameOn) {
 
-    updateLevelCounterIfPlayerIsAlive();
+        updateLevelDelayCounterIfWallsAreOff();
 
-    player.update();
+        updateLevelCounterIfPlayerIsAlive();
 
-    increaseScoreIfPlayerIsAlive();
+        updateCoinCounter();
+
+        increaseScoreIfPlayerIsAlive();
+    }
+
+    Game.objects.player.update();
 
     if (isEndOfLevel()) {
         endLevel();
@@ -23,31 +28,71 @@ function update() {
         createNewWall();
     }
 
+    if (shouldNewCoinBeCreated()) {
+        createNewCoin();
+    }
+
     updateWalls();
 
+    updateCoins();
+
     updateSmoke();
+
+    updateBorders();
+
+    ifGameOffAndUpPressedStartGame();
 
     ifSpaceBarPressedAndPlayerDeadRestartGame();
 
     ifDKeyPressedSwitchOnDebugInfoIfDebugEnabled();
 }
 
+function updateBorders() {
+    if (Game.settings.text.bordersLowered && Game.counters.borderCounter < Game.settings.borderIncrease) {
+        Game.counters.borderCounter++;
+        Game.settings.floor++;
+        Game.settings.ceiling++;
+    }
+}
+
+function ifGameOffAndUpPressedStartGame() {
+    if(Key.isDown(Key.UP) && !Game.settings.gameOn && Game.objects.player.alive) {
+        Game.settings.gameOn = true;
+    }
+}
+
+function updateCoinCounter() {
+    Game.counters.coinCounter++;
+}
+
+function shouldNewCoinBeCreated() {
+    if (Game.counters.coinCounter > Game.settings.coinFrequency) {
+        return true;
+    }
+    return false;
+}
+
+function createNewCoin() {
+    Game.objects.coins[Game.objects.coins.length] = new Coin();
+    Game.counters.coinCounter = 0;
+}
+
 function updateLevelDelayCounterIfWallsAreOff() {
-    if (!wallsOn ) {
-        levelDelay++;
+    if (!Game.counters.wallsOn ) {
+        Game.counters.levelDelay++;
     }
 }
 
 function updateLevelCounterIfPlayerIsAlive() {
-    if(player.alive) {
-        if(wallsOn) {
-            levelCounter++;
+    if(Game.objects.player.alive) {
+        if(Game.counters.wallsOn) {
+            Game.counters.levelCounter++;
         }
     }
 }
 
 function shouldANewLevelBeStarted() {
-    if(levelDelay < levelMaxDelay) {
+    if(Game.counters.levelDelay < Game.settings.levelMaxDelay) {
         return false;
     } else {
         return true;
@@ -55,21 +100,21 @@ function shouldANewLevelBeStarted() {
 }
 
 function startLevel() {
-    wallsOn = true;
-    textGetReady = false;
-    textLevelClear = false;
-    textSpeedIncrease = false;
-    textWallFrequency = false;
-    textBordersLowered = false;
-    textWallSizeIncreased = false;
+    Game.counters.wallsOn = true;
+    Game.settings.text.getReady = false;
+    Game.settings.text.levelClear = false;
+    Game.settings.text.speedIncrease = false;
+    Game.settings.text.wallFrequency = false;
+    Game.settings.text.bordersLowered = false;
+    Game.settings.text.wallSizeIncreased = false;
 }
 
 function isEndOfLevel() {
-    if(player.alive) {
-        if(levelCounter > levelFrequency) {
-            levelDelay = 0;
-            wallsOn = false;
-            if (walls.length == 0) {
+    if(Game.objects.player.alive) {
+        if(Game.counters.levelCounter > Game.settings.levelFrequency) {
+            Game.counters.levelDelay = 0;
+            Game.counters.wallsOn = false;
+            if (Game.objects.walls.length == 0) {
                 return true;
             }
         }
@@ -78,22 +123,24 @@ function isEndOfLevel() {
 }
 
 function endLevel() {
-    levelDelay = 0;
-    textLevelClear = true;
-    levelCounter = 0;
-    level++;
+    Game.counters.levelDelay = 0;
+    Game.settings.text.levelClear = true;
+    Game.counters.levelCounter = 0;
+    Game.counters.level++;
 
     pickRandomModifier();
 }
 
 function pickRandomModifier() {
     var random = Math.round(Math.random() * 4);
+
+    random = 2;
     switch (random) {
         case 1:
             increaseWallFrequency(1.5);
             break;
         case 2:
-            increaseBorders(30);
+            increaseBorders();
             break;
         case 3:
             increaseWallSize(30);
@@ -105,64 +152,67 @@ function pickRandomModifier() {
 }
 
 function increaseSpeed(arg) {
-    speed += arg;
-    textSpeedIncrease = true;
+    Game.settings.speed += arg;
+    Game.settings.text.speedIncrease = true;
 }
 
 function increaseWallFrequency(arg) {
-    frequency /= arg;
-    textWallFrequency = true;
+    Game.settings.frequency /= arg;
+    Game.settings.text.wallFrequency = true;
 }
 
-function increaseBorders(arg) {
-    floor += arg;
-    ceiling += arg;
-    textBordersLowered = true;
+function increaseBorders() {
+    Game.settings.text.bordersLowered = true;
+    Game.counters.borderCounter = 0;
 }
 
 function increaseWallSize(arg) {
-    wallMin += arg;
-    wallMax += arg;
-    textWallSizeIncreased = true;
+    Game.settings.wallMin += arg;
+    Game.settings.wallMax += arg;
+    Game.settings.text.wallSizeIncreased = true;
 }
 
 function restart() {
-    player = new Player(canvas)
-    walls = new Array();
+    Game.objects.player = new Player(Game.canvas)
+    Game.objects.walls = new Array();
+    Game.objects.coins = new Array();
+
     setDefaultGameSettings();
-    textGetReady = true;
-    textLevelClear = false;
-    textSpeedIncrease = false;
-    textWallFrequency = false;
-    textBordersLowered = false;
-    textWallSizeIncreased = false;
-    level = 1;
-    score = 0;
-    levelDelay = 0;
-    levelCounter = 0;
+
+    Game.settings.text.getReady = true;
+    Game.settings.text.levelClear = false;
+    Game.settings.text.speedIncrease = false;
+    Game.settings.text.wallFrequency = false;
+    Game.settings.text.bordersLowered = false;
+    Game.settings.text.wallSizeIncreased = false;
+    Game.counters.level = 1;
+    Game.counters.score = 0;
+    Game.counters.levelDelay = 0;
+    Game.counters.levelCounter = 0;
+    Game.settings.gameOn = false;
 }
 
 function setDefaultGameSettings() {
-    gravity = gravityDef;
-    resistance = resistanceDef;
-    speed = speedDef;
-    frequency = frequencyDef;
-    floor = floorDef;
-    ceiling = ceilingDef;
-    wallMin = wallMinDef;
-    wallMax = wallMaxDef;
+    Game.settings.gravity = Game.settings.defaults.gravityDef;
+    Game.settings.resistance = Game.settings.defaults.resistanceDef;
+    Game.settings.speed = Game.settings.defaults.speedDef;
+    Game.settings.frequency = Game.settings.defaults.frequencyDef;
+    Game.settings.floor = Game.settings.defaults.floorDef;
+    Game.settings.ceiling = Game.settings.defaults.ceilingDef;
+    Game.settings.wallMin = Game.settings.defaults.wallMinDef;
+    Game.settings.wallMax = Game.settings.defaults.wallMaxDef;
 }
 
 function updateWalls() {
-    for(var wall in walls) {
-        walls[wall].update();
+    for(var wall in Game.objects.walls) {
+        Game.objects.walls[wall].update();
     }
 }
 
 function shouldNewWallBeCreated() {
-    if(wallsOn) {
-        frequencyCounter++;
-        if(frequencyCounter >= frequency) {
+    if(Game.counters.wallsOn) {
+        Game.counters.frequencyCounter++;
+        if(Game.counters.frequencyCounter >= Game.settings.frequency) {
             return true;
         }
     }
@@ -170,13 +220,13 @@ function shouldNewWallBeCreated() {
 }
 
 function createNewWall() {
-    walls[walls.length] = new Wall(wallMin, wallMax);
-    frequencyCounter = 0;
+    Game.objects.walls[Game.objects.walls.length] = new Wall();
+    Game.counters.frequencyCounter = 0;
 }
 
 function updateSmoke() {
-    for(var exhaust in smoke) {
-        smoke[exhaust].update();
+    for(var particle in Game.objects.smoke) {
+        Game.objects.smoke[particle].update();
     }
 
     if (shouldNewSmokeParticleBeCreated()) {
@@ -185,9 +235,9 @@ function updateSmoke() {
 }
 
 function shouldNewSmokeParticleBeCreated() {
-    if(player.alive) {
-        smokeCounter++;
-        if(smokeCounter > smokeFrequency) {
+    if(Game.objects.player.alive) {
+        Game.counters.smokeCounter++;
+        if(Game.counters.smokeCounter > Game.settings.smoke.smokeFrequency) {
             return true;
         }
     }
@@ -195,37 +245,48 @@ function shouldNewSmokeParticleBeCreated() {
 }
 
 function createNewSmokeParticle() {
-    smokeCounter = 0;
-    smoke[smoke.length] = new SmokeParticle();
-}
-
-function isPlayerCollidingWithAnything() {
-    if (isObjectCollidingWithBorder(player) || isObjectCollidingWithWalls(player)) {
-        return true
-    }
-    return false;
+    Game.counters.smokeCounter = 0;
+    Game.objects.smoke[Game.objects.smoke.length] = new SmokeParticle();
 }
 
 function isObjectCollidingWithWalls(arg) {
-    for(var wall in walls) {
-        if(rectIntersect(arg, walls[wall])) {
+    for(var wall in Game.objects.walls) {
+        if(isRectIntersect(arg, Game.objects.walls[wall])) {
             return true;
         }
     }
     return false;
 }
 
-function isObjectCollidingWithBorder(arg) {
-    if(arg.currentPositionY < ceiling) {
-        return true;
-    }
-    if(arg.currentPositionY + arg.sizeY > canvas.height - floor) {
+function isObjectCollidingWithCeiling(arg) {
+    if(arg.currentPositionY < Game.settings.ceiling) {
         return true;
     }
     return false;
 }
 
-function rectIntersect(arg1, arg2) {
+function isObjectCollidingWithFloor(arg) {
+    if(arg.currentPositionY + arg.sizeY > Game.canvas.height - Game.settings.floor) {
+        return true;
+    }
+    return false;
+}
+
+function isObjectCollidingWithLeftBoundary(arg) {
+    if (arg.currentPositionX < 0) {
+        return true;
+    }
+    return false;
+}
+
+function isObjectCollidingWithRightBoundary(arg) {
+    if (arg.currentPositionX + arg.sizeX > Game.canvas.width) {
+        return true;
+    }
+    return false;
+}
+
+function isRectIntersect(arg1, arg2) {
     if(arg1.currentPositionX + arg1.sizeX > arg2.currentPositionX) {
         if(arg1.currentPositionX < arg2.currentPositionX + arg2.sizeX) {
             if(arg1.currentPositionY + arg1.sizeY > arg2.currentPositionY) {
@@ -252,7 +313,25 @@ function checkCap(pos, arg, cap) {
 }
 
 function increaseScoreIfPlayerIsAlive() {
-    if(player.alive) {
-        score++;
+    if(Game.objects.player.alive) {
+        Game.counters.score++;
     }
+}
+
+function generateYPosition(arg) {
+    var derp = Math.random() * (Game.canvas.height - Game.settings.floor - arg.sizeY - Game.settings.ceiling);
+    return derp + Game.settings.ceiling;
+}
+
+function updateCoins() {
+    for(var coin in Game.objects.coins) {
+        Game.objects.coins[coin].update();
+    }
+}
+
+function isObjectOffLeftSideOfScreen(arg) {
+    if(arg.currentPositionX + arg.sizeX < 0) {
+        return true;
+    }
+    return false;
 }

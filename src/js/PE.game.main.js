@@ -1,43 +1,99 @@
 'use strict';
 
-// Variables ***************************************************************************************************************
+var Game = { };
 
-// Canvas variables
-var canvas = document.getElementById("canvas"), context = canvas.getContext("2d");
+Game.canvas = document.getElementById("canvas");
+Game.context = Game.canvas.getContext("2d");
 
-// Debug
-var drawFrame = 0, updateFrame = 0, debug = false, debugEnabled = true;
+Game.settings = {
+    gameOn: false,
+    gravity: 0.2,
+    resistance: 0.2,
+    speed: 4,
+    frequency: 60,
+    floor: 60,
+    ceiling: 50,
+    wallMin: 50,
+    wallMax: 100,
+    wallWidth: 15,
+    levelFrequency: 1000,
+    levelMaxDelay: 200,
+    coinFrequency: 50,
+    borderIncrease: 30,
+    fps: 60,
+    debug: {
+        drawFrame: 0,
+        updateFrame: 0,
+        debugOn: false,
+        debugEnabled: true
+    },
+    smoke: {
+        smokeFrequency: 1,
+        smokeSize: 2,
+        smokeGrowth: 0.2,
+        smokeMaxSize: 5,
+        smokeColour: '#FFFFFF'
+    },
+    defaults: {
+        levelFrequency: 1000,
+        coinFrequency: 50,
+        levelMaxDelay: 200,
+        gravityDef: 0.2,
+        resistanceDef: 0.2,
+        speedDef: 4,
+        frequencyDef: 60,
+        floorDef: 60,
+        ceilingDef: 50,
+        wallMinDef: 50,
+        wallMaxDef: 100,
+        wallWidthDef: 15,
+        borderIncrease: 30
+    },
+    textDefaults: {
+        colour: '#CD007A',
+        font: 'bold 20px calibri',
+        align: 'center'
+    },
+    text: {
+        getReady: true,
+        levelClear: false,
+        speedIncrease: false,
+        wallFrequency: false,
+        bordersLowered: false,
+        wallSizeIncreased: false
+    }
+};
 
-// Objects
-var player = new Player(canvas), walls = new Array(), smoke = new Array();
+Game.objects = {
+    player: new Player(Game.canvas),
+    walls: new Array(),
+    smoke: new Array(),
+    coins: new Array()
+};
 
-// Player smoke settings
-var smokeFrequency = 1, smokeSize = 2, smokeGrowth = 0.2, smokeMaxSize = 5, smokeColour = '#FFFFFF';
+Game.counters = {
+    score: 0,
+    smokeCounter: 0,
+    level: 1,
+    levelCounter: 0,
+    levelDelay: 0,
+    wallsOn: true,
+    frequencyCounter: 0,
+    coinCounter: 0,
+    borderCounter: 0
+};
 
-// Game settings
-var levelFrequency = 1000, levelMaxDelay = 200, gravityDef = 0.20, resistanceDef = 0.04, speedDef = 4, frequencyDef = 60;
-var floorDef = 60, ceilingDef = 50, wallMinDef = 50, wallMaxDef = 100, wallWidth = 15;
+Game.assets = {
+    logo: new Image(),
+    wallGradient: Game.context.createLinearGradient(0, 0, Game.canvas.width, 0)
+};
 
-// In-game variables
-var score = 0, smokeCounter = 0, level = 1, levelCounter = 0, levelDelay = 0, wallsOn = true, frequencyCounter = 0;
-var textGetReady = true, textLevelClear = false, textSpeedIncrease = false, textWallFrequency = false;
-var textBordersLowered = false, textWallSizeIncreased = false;
-var textDefaultColor = '#CD007A', textDefaultFont = 'bold 20px calibri', textDefaultAlign = 'center';
-
-// Initialise game settings
-var gravity, resistance, speed, frequency, floor, ceiling, wallMin, wallMax;
-setDefaultGameSettings();
-
-// Load image assets and gradients
-var logo = new Image(), wallGradient = context.createLinearGradient(0, 0, canvas.width, 0);
 loadAssets();
-
-var fps = 60;
 
 // Time step control ***************************************************************************************************************
 
 var run = (function () {
-    var loops = 0, skipTicks = 1000 / fps,
+    var loops = 0, skipTicks = 1000 / Game.settings.fps,
         maxFrameSkip = 10,
         nextGameTick = (new Date).getTime();
 
@@ -75,7 +131,7 @@ var run = (function () {
         };
     } else {
         onEachFrame = function (cb) {
-            setInterval(cb, 1000 / 60);
+            setInterval(cb, 1000 / Game.settings.fps);
         }
     }
 

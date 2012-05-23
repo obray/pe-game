@@ -1,16 +1,15 @@
-
-function Player(canvas) {
+function Player() {
     this.sizeX = 40;
     this.sizeY = 80;
-    this.thrustStrengthX = 0.1;
-    this.thrustStrengthY = 0.5;
-    this.maxThrustX = 1;
-    this.maxThrustY = 6;
-    this.maxVelocityX = 5;
+    this.thrustStrengthX = 0.375;
+    this.thrustStrengthY = 0.70;
+    this.maxVelocityX = 10;
     this.maxVelocityY = 10;
 
-    this.currentPositionX = canvas.width / 3;
-    this.currentPositionY = this.sizeY * 2;
+    this.currentPositionX = Game.canvas.width / 3;
+    this.currentPositionY = this.sizeY * 3;
+    this.oldPositionX = this.currentPositionX;
+    this.oldPositionY = this.currentPositionY;
     this.currentVelocityX = 0;
     this.currentVelocityY = 0;
     this.alive = true;
@@ -23,9 +22,9 @@ function Player(canvas) {
 
 Player.prototype.update = function() {
 
-    this.checkThrustLimits();
-
-    this.applyGravity();
+    if (Game.settings.gameOn) {
+       this.applyGravity();
+    }
 
     this.applyAirResistance();
 
@@ -33,55 +32,81 @@ Player.prototype.update = function() {
 
     this.checkVelocityLimits();
 
-    this.updatePosition();
-
-    if (isPlayerCollidingWithAnything()) {
+    if (this.isPlayerCollidingWithAnythingDeadly()) {
         this.destroy();
     }
+    if (this.isPlayerCollidingWithBoundaries()) {
+        this.currentVelocityX = 0;
+        this.currentPositionX = this.oldPositionX;
+    }
+
+    this.isPlayerCollidingWithCoins();
+
+    this.updatePosition();
+}
+
+Player.prototype.isPlayerCollidingWithCoins = function() {
+    for (var coin in Game.objects.coins) {
+        if (isRectIntersect(this, Game.objects.coins[coin]) && Game.objects.coins[coin].alive) {
+            Game.counters.score += 100;
+            Game.objects.coins[coin].alive = false;
+        }
+    }
+}
+
+Player.prototype.isPlayerCollidingWithAnythingDeadly = function() {
+    if (isObjectCollidingWithCeiling(Game.objects.player) ||
+        isObjectCollidingWithFloor(Game.objects.player) ||
+        isObjectCollidingWithWalls(Game.objects.player)) {
+        return true
+    }
+    return false;
+}
+
+Player.prototype.isPlayerCollidingWithBoundaries = function() {
+    if (isObjectCollidingWithLeftBoundary(Game.objects.player) ||
+        isObjectCollidingWithRightBoundary(Game.objects.player)) {
+        return true;
+    }
+    return false;
 }
 
 Player.prototype.updateVelocityAndSmoke = function() {
     if (this.alive) {
-        if(Key.isDown(Key.UP)) {
-            this.currentVelocityY += this.thrustStrengthY;
-            smokeSize = 1, smokeGrowth = 0.2;
-            smokeFrequency = 2, smokeMaxSize = 20;
-            smokeColour = '#D9D9D9';
+        if(Key.isDown(Key.LEFT)) {
+            this.currentVelocityX -= this.thrustStrengthX;
+            Game.settings.smoke.smokeSize = 1, Game.settings.smoke.smokeGrowth = 0.1;
+            Game.settings.smoke.smokeFrequency = 10, Game.settings.smoke.smokeMaxSize = 10;
         }
 
-        if(Key.isDown(Key.LEFT)) {
-            this.currentVelocityX += this.thrustStrengthX;
-            smokeSize = 1, smokeGrowth = 0.1;
-            smokeFrequency = 10, smokeMaxSize = 10;
-            smokeColour = '#FFFFFF';
+        if(Key.isDown(Key.UP)) {
+            this.currentVelocityY += this.thrustStrengthY;
+            Game.settings.smoke.smokeSize = 1, Game.settings.smoke.smokeGrowth = 0.2;
+            Game.settings.smoke.smokeFrequency = 2, Game.settings.smoke.smokeMaxSize = 20;
         }
 
         if(Key.isDown(Key.RIGHT)) {
-            this.currentVelocityX -= this.thrustStrengthX;
-            smokeSize = 1, smokeGrowth = 0.2;
-            smokeFrequency = 2, smokeMaxSize = 20;
-            smokeColour = '#D9D9D9';
+            this.currentVelocityX += this.thrustStrengthX;
+            Game.settings.smoke.smokeSize = 1, Game.settings.smoke.smokeGrowth = 0.2;
+            Game.settings.smoke.smokeFrequency = 2, Game.settings.smoke.smokeMaxSize = 20;
         }
 
         if (!Key.isDown(Key.UP) && !Key.isDown(Key.LEFT) && !Key.isDown(Key.RIGHT)) {
-            smokeSize = 1, smokeGrowth = 0.1;
-            smokeFrequency = 5, smokeMaxSize = 10;
-            smokeColour = '#FFFFFF';
+            if (this.currentVelocityY > 0) {
+                this.currentVelocityY -= 0.3;
+            }
+            Game.settings.smoke.smokeSize = 1, Game.settings.smoke.smokeGrowth = 0.1;
+            Game.settings.smoke.smokeFrequency = 5, Game.settings.smoke.smokeMaxSize = 10;
         }
     }
 }
 
 Player.prototype.updatePosition = function() {
-    this.currentPositionX -= this.currentVelocityX;
+    this.oldPositionX = this.currentPositionX;
+    this.oldPositionY = this.currentPositionY;
+
+    this.currentPositionX += this.currentVelocityX;
     this.currentPositionY -= this.currentVelocityY;
-}
-
-Player.prototype.checkThrustLimits = function() {
-    this.thrustStrengthY = checkCap(true, this.thrustStrengthY, this.maxThrustY);
-    this.thrustStrengthY = checkCap(false, this.thrustStrengthY, this.maxThrustY);
-
-    this.thrustStrengthX = checkCap(true, this.thrustStrengthX, this.maxThrustX);
-    this.thrustStrengthX = checkCap(false, this.thrustStrengthX, this.maxThrustX);
 }
 
 Player.prototype.checkVelocityLimits = function() {
@@ -93,15 +118,15 @@ Player.prototype.checkVelocityLimits = function() {
 }
 
 Player.prototype.applyGravity = function() {
-    this.currentVelocityY -= gravity;
+    this.currentVelocityY -= Game.settings.gravity;
 }
 
 Player.prototype.applyAirResistance = function() {
     if (this.currentVelocityX < 0) {
-        this.currentVelocityX += resistance;
+        this.currentVelocityX += Game.settings.resistance;
     }
     if (this.currentVelocityX > 0) {
-        this.currentVelocityX -= resistance;
+        this.currentVelocityX -= Game.settings.resistance;
     }
 }
 
