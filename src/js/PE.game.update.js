@@ -33,6 +33,16 @@ function update() {
         createNewCoin();
     }
 
+    if (shouldNewBuildingBeCreated()) {
+        createNewBuilding();
+    }
+
+    if (shouldNewCloudBeCreated()) {
+        createNewCloud();
+    }
+
+    updateBuildings();
+
     updateWalls();
 
     updateCoins();
@@ -41,6 +51,8 @@ function update() {
 
     updateBorders();
 
+    updateClouds();
+
     ifGameOffAndUpPressedStartGame();
 
     ifSpaceBarPressedAndPlayerDeadRestartGame();
@@ -48,17 +60,50 @@ function update() {
     ifDKeyPressedSwitchOnDebugInfoIfDebugEnabled();
 }
 
+function updateClouds() {
+    for(var cloud in Game.objects.clouds) {
+        Game.objects.clouds[cloud].update();
+    }
+}
+
+function shouldNewCloudBeCreated() {
+    Game.counters.cloud += Game.settings.speed;
+    if (Game.counters.cloud > Game.settings.cloudFrequency) {
+        return true;
+    }
+    return false;
+}
+
+function createNewCloud() {
+    Game.objects.clouds[Game.objects.clouds.length] = new Cloud();
+    Game.counters.cloud = 0;
+}
+
+function updateBuildings() {
+    for(var building in Game.objects.buildings) {
+        Game.objects.buildings[building].update();
+    }
+}
+
+function shouldNewBuildingBeCreated() {
+    Game.counters.building += Game.settings.speed;
+    if (Game.counters.building > Game.settings.buildingFrequency) {
+        return true;
+    }
+    return false;
+}
+
+function createNewBuilding() {
+    Game.objects.buildings[Game.objects.buildings.length] = new Building();
+    Game.settings.buildingFrequency = Game.objects.buildings[Game.objects.buildings.length - 1].sizeX * 2;
+    Game.counters.building = 0;
+}
+
 function updateBorders() {
     if (Game.settings.text.bordersLowered && Game.counters.borderCounter < Game.settings.borderIncrease) {
         Game.counters.borderCounter++;
         Game.settings.floor++;
         Game.settings.ceiling++;
-    }
-}
-
-function ifGameOffAndUpPressedStartGame() {
-    if(Key.isDown(Key.UP) && !Game.settings.gameOn && Game.objects.player.alive) {
-        Game.settings.gameOn = true;
     }
 }
 
@@ -84,6 +129,52 @@ function updateLevelDelayCounterIfWallsAreOff() {
     }
 }
 
+function updateWalls() {
+    for(var wall in Game.objects.walls) {
+        Game.objects.walls[wall].update();
+    }
+}
+
+function shouldNewWallBeCreated() {
+    if(Game.counters.wallsOn) {
+        Game.counters.frequencyCounter++;
+        if(Game.counters.frequencyCounter >= Game.settings.frequency) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function createNewWall() {
+    Game.objects.walls[Game.objects.walls.length] = new Wall();
+    Game.counters.frequencyCounter = 0;
+}
+
+function updateSmoke() {
+    for(var particle in Game.objects.smoke) {
+        Game.objects.smoke[particle].update();
+    }
+
+    if (shouldNewSmokeParticleBeCreated()) {
+        createNewSmokeParticle();
+    }
+}
+
+function shouldNewSmokeParticleBeCreated() {
+    if(Game.objects.player.alive) {
+        Game.counters.smokeCounter++;
+        if(Game.counters.smokeCounter > Game.settings.smoke.smokeFrequency) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function createNewSmokeParticle() {
+    Game.counters.smokeCounter = 0;
+    Game.objects.smoke[Game.objects.smoke.length] = new SmokeParticle();
+}
+
 function updateLevelCounterIfPlayerIsAlive() {
     if(Game.objects.player.alive) {
         if(Game.counters.wallsOn) {
@@ -97,6 +188,12 @@ function shouldANewLevelBeStarted() {
         return false;
     } else {
         return true;
+    }
+}
+
+function ifGameOffAndUpPressedStartGame() {
+    if(Key.isDown(Key.UP) && !Game.settings.gameOn && Game.objects.player.alive) {
+        Game.settings.gameOn = true;
     }
 }
 
@@ -198,10 +295,13 @@ function restart() {
     Game.counters.levelDelay = 0;
     Game.counters.levelCounter = 0;
     Game.counters.mileage = 540;
+    Game.counters.building = 0;
     Game.settings.mileageX = -100;
     Game.settings.currentMileage = 0;
     Game.settings.gameOn = false;
     Game.settings.levelOn = false;
+    Game.settings.buildingFrequency = 1;
+
 }
 
 function setDefaultGameSettings() {
@@ -213,52 +313,6 @@ function setDefaultGameSettings() {
     Game.settings.ceiling = Game.settings.defaults.ceilingDef;
     Game.settings.wallMin = Game.settings.defaults.wallMinDef;
     Game.settings.wallMax = Game.settings.defaults.wallMaxDef;
-}
-
-function updateWalls() {
-    for(var wall in Game.objects.walls) {
-        Game.objects.walls[wall].update();
-    }
-}
-
-function shouldNewWallBeCreated() {
-    if(Game.counters.wallsOn) {
-        Game.counters.frequencyCounter++;
-        if(Game.counters.frequencyCounter >= Game.settings.frequency) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function createNewWall() {
-    Game.objects.walls[Game.objects.walls.length] = new Wall();
-    Game.counters.frequencyCounter = 0;
-}
-
-function updateSmoke() {
-    for(var particle in Game.objects.smoke) {
-        Game.objects.smoke[particle].update();
-    }
-
-    if (shouldNewSmokeParticleBeCreated()) {
-        createNewSmokeParticle();
-    }
-}
-
-function shouldNewSmokeParticleBeCreated() {
-    if(Game.objects.player.alive) {
-        Game.counters.smokeCounter++;
-        if(Game.counters.smokeCounter > Game.settings.smoke.smokeFrequency) {
-            return true;
-        }
-    }
-    return false;
-}
-
-function createNewSmokeParticle() {
-    Game.counters.smokeCounter = 0;
-    Game.objects.smoke[Game.objects.smoke.length] = new SmokeParticle();
 }
 
 function isObjectCollidingWithWalls(arg) {

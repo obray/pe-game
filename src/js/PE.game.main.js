@@ -13,7 +13,7 @@ Game.settings = {
     gravity: 0.2,
     resistance: 0.2,
     speed: 4,
-    frequency: 60,
+    frequency: 100,
     floor: 100,
     ceiling: 50,
     wallMin: 50,
@@ -23,6 +23,8 @@ Game.settings = {
     levelMaxDelay: 200,
     coinFrequency: 50,
     borderIncrease: 30,
+    buildingFrequency: 1,
+    cloudFrequency: 750,
     fps: 60,
     debug: {
         drawFrame: 0,
@@ -44,13 +46,15 @@ Game.settings = {
         gravityDef: 0.2,
         resistanceDef: 0.2,
         speedDef: 4,
-        frequencyDef: 60,
+        frequencyDef: 100,
         floorDef: 100,
         ceilingDef: 50,
         wallMinDef: 50,
         wallMaxDef: 100,
         wallWidthDef: 15,
-        borderIncrease: 30
+        borderIncrease: 20,
+        buildingFrequency: 1,
+        cloudFrequency: 750
     },
     textDefaults: {
         colour: '#CD007A',
@@ -72,7 +76,10 @@ Game.objects = {
     player: new Player(),
     walls: new Array(),
     smoke: new Array(),
-    coins: new Array()
+    coins: new Array(),
+    buildings: new Array(),
+    clouds: new Array(),
+    birds: new Array()
 };
 
 Game.counters = {
@@ -88,7 +95,9 @@ Game.counters = {
     frequencyCounter: 0,
     coinCounter: 0,
     borderCounter: 0,
-    mileage: 540
+    mileage: 540,
+    building: 0,
+    cloud: 0
 };
 
 Game.assets = {

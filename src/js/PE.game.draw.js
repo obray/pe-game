@@ -5,6 +5,8 @@ function draw() {
 
     drawBackground();
 
+    drawBuildings();
+
     drawBorder();
 
     drawWalls();
@@ -14,6 +16,8 @@ function draw() {
     drawSmoke();
 
     drawPlayer();
+
+    drawClouds();
 
     drawAllText();
 
@@ -56,6 +60,35 @@ function drawPlayer() {
     }
 }
 
+function drawBuildings() {
+    for(var building in Game.objects.buildings) {
+        drawBuilding(Game.objects.buildings[building]);
+    }
+}
+
+function drawClouds() {
+    for(var cloud in Game.objects.clouds) {
+        for(var circle in Game.objects.clouds[cloud].circles) {
+            Game.context.fillStyle = Game.objects.clouds[cloud].circles[circle].colour;
+            Game.context.strokeStyle = Game.objects.clouds[cloud].circles[circle].colour;
+
+            Game.context.beginPath();
+            Game.context.arc(Game.objects.clouds[cloud].currentPositionX + Game.objects.clouds[cloud].circles[circle].offX,
+                Game.objects.clouds[cloud].currentPositionY + Game.objects.clouds[cloud].circles[circle].offY,
+                Game.objects.clouds[cloud].circles[circle].size, 0, Math.PI * 2, false);
+            Game.context.closePath();
+            Game.context.fill();
+        }
+    }
+}
+
+function drawBuilding(arg) {
+    Game.context.strokeStyle = '#CCCCCC';
+    Game.context.strokeRect(arg.currentPositionX, Game.canvas.height - Game.settings.floor, arg.sizeX, -arg.sizeY);
+    Game.context.fillStyle = '#DDDDDD';
+    Game.context.fillRect(arg.currentPositionX, Game.canvas.height - Game.settings.floor, arg.sizeX, -arg.sizeY);
+}
+
 function drawWalls() {
     Game.context.fillStyle = Game.assets.wallGradient;
     Game.context.strokeStyle = '#000000';
@@ -72,7 +105,7 @@ function drawRectangle(arg) {
 function drawCoins() {
     Game.context.font = 'bold 12px calibri';
     Game.context.textAlign = 'left';
-    Game.context.fillStyle = '##CD007A';
+    Game.context.fillStyle = '#CD007A';
 
     for(var coin in Game.objects.coins) {
         if (Game.objects.coins[coin].alive) {
@@ -129,16 +162,16 @@ function drawAllText() {
         drawText("LEVEL CLEAR", 0, -40);
     }
     if(Game.settings.text.speedIncrease) {
-        drawCenterText("Speed increased!");
+        drawText("Speed increased!", 0, 20);
     }
     if(Game.settings.text.wallFrequency) {
-        drawCenterText("Wall rate increased!");
+        drawText("Wall rate increased!", 0, 20);
     }
     if(Game.settings.text.bordersLowered) {
-        drawCenterText("Borders increased!");
+        drawText("Borders increased!", 0, 20);
     }
     if(Game.settings.text.wallSizeIncreased) {
-        drawCenterText("Wall size increased!");
+        drawText("Wall size increased!", 0, 20);
     }
 
     Game.context.font = Game.settings.textDefaults.font;

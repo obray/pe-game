@@ -151,4 +151,10 @@ Player.prototype.applyAirResistance = function() {
 Player.prototype.destroy = function() {
     this.alive = false;
     Game.settings.text.getReady = false;
+    Game.settings.text.levelClear = false;
+    Game.settings.text.speedIncrease = false;
+    Game.settings.text.wallFrequency = false;
+    Game.settings.text.bordersLowered = false;
+    Game.settings.text.wallSizeIncreased = false;
+    Game.settings.text.coinsCollected = false;
 }
