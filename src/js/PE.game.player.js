@@ -26,6 +26,7 @@ Player.prototype.update = function() {
        this.applyGravity();
        this.updateDistance();
 
+        // TODO Refactor
         Game.counters.mileage += Game.settings.speed;
         Game.settings.mileageX -= Game.settings.speed;
         if (Game.counters.mileage == 1000) {
@@ -93,7 +94,7 @@ Player.prototype.updateVelocityAndSmoke = function() {
         if(Key.isDown(Key.LEFT)) {
             this.currentVelocityX -= this.thrustStrengthX;
             Game.settings.smoke.smokeSize = 1, Game.settings.smoke.smokeGrowth = 0.1;
-            Game.settings.smoke.smokeFrequency = 10, Game.settings.smoke.smokeMaxSize = 10;
+            Game.settings.smoke.smokeFrequency = 5, Game.settings.smoke.smokeMaxSize = 10;
         }
 
         if(Key.isDown(Key.UP)) {
