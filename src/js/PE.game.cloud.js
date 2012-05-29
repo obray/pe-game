@@ -5,8 +5,8 @@ function Cloud() {
     this.speed = 3 + Math.random() * 4;
 
     this.circles[0] = new Circle(0, 0);
-    var derp = 8 + Math.random() * 16;
-    for (var i = 1; i < derp; i++) {
+    var noOfCircles = 8 + Math.random() * 16;
+    for (var i = 1; i < noOfCircles; i++) {
         this.circles[i] = new Circle(this.circles[i - 1].size, this.circles[i - 1].size);
     }
 }

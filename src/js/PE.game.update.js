@@ -17,6 +17,8 @@ function update() {
         updateCoinCounter();
 
         increaseScoreIfPlayerIsAlive();
+
+        updateMileage();
     }
 
     Game.objects.player.update();
@@ -58,6 +60,16 @@ function update() {
     ifSpaceBarPressedAndPlayerDeadRestartGame();
 
     ifDKeyPressedSwitchOnDebugInfoIfDebugEnabled();
+}
+
+function updateMileage() {
+    Game.counters.mileage += Game.settings.speed;
+    Game.settings.mileageX -= Game.settings.speed;
+    if (Game.counters.mileage == 1000) {
+        Game.counters.mileage = 0;
+        Game.settings.currentMileage += 100;
+        Game.settings.mileageX = Game.canvas.width;
+    }
 }
 
 function updateClouds() {
@@ -301,7 +313,6 @@ function restart() {
     Game.settings.gameOn = false;
     Game.settings.levelOn = false;
     Game.settings.buildingFrequency = 1;
-
 }
 
 function setDefaultGameSettings() {

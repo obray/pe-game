@@ -46,7 +46,6 @@ function Coin() {
     this.currentPositionX = Game.canvas.width;
     this.currentPositionY = generateYPosition(this);
 
-
     this.alive = true;
 }
 
@@ -61,16 +60,22 @@ Coin.prototype.animate = function() {
 Coin.prototype.update = function() {
     this.updatePosition();
 
-    // TODO Refactor
-    this.animationCounter++;
-    if (this.animationCounter > this.animationSpeed) {
-        this.animationCounter = 0;
+    if (this.isTimeForNextAnimation()) {
         this.animate();
     }
 
     if(isObjectOffLeftSideOfScreen(this)) {
         this.destroyCoin();
     }
+}
+
+Coin.prototype.isTimeForNextAnimation = function() {
+    this.animationCounter++;
+    if (this.animationCounter > this.animationSpeed) {
+        this.animationCounter = 0;
+        return true;
+    }
+    return false;
 }
 
 Coin.prototype.moveIfCollidingWithWall = function() {

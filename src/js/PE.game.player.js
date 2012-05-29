@@ -25,15 +25,6 @@ Player.prototype.update = function() {
     if (Game.settings.gameOn) {
        this.applyGravity();
        this.updateDistance();
-
-        // TODO Refactor
-        Game.counters.mileage += Game.settings.speed;
-        Game.settings.mileageX -= Game.settings.speed;
-        if (Game.counters.mileage == 1000) {
-            Game.counters.mileage = 0;
-            Game.settings.currentMileage += 100;
-            Game.settings.mileageX = Game.canvas.width;
-        }
     }
 
     this.applyAirResistance();
