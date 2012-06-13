@@ -55,11 +55,27 @@ function update() {
 
     updateClouds();
 
+    updateNight();
+
     ifGameOffAndUpPressedStartGame();
 
     ifSpaceBarPressedAndPlayerDeadRestartGame();
 
     ifDKeyPressedSwitchOnDebugInfoIfDebugEnabled();
+}
+
+function updateNight() {
+    if (Game.counters.night < 200) {
+        Game.counters.night++;
+
+        if (Game.settings.night) {
+            var colour = 231 - Game.counters.night;
+        } else {
+            var colour = 31 + Game.counters.night;
+        }
+        colour = colour.toString(16);
+        Game.settings.backgroundColor = '#' + colour + colour + colour;
+    }
 }
 
 function updateMileage() {
@@ -244,7 +260,23 @@ function endLevel() {
     Game.settings.text.coinsCollected = true;
     Game.settings.levelOn = false;
 
+    if (Game.settings.night) {
+        changeToDay();
+    } else {
+        changeToNight();
+    }
+
     pickRandomModifier();
+}
+
+function changeToDay() {
+    Game.counters.night = 0;
+    Game.settings.night = false;
+}
+
+function changeToNight() {
+    Game.counters.night = 0;
+    Game.settings.night = true;
 }
 
 function pickRandomModifier() {
@@ -308,11 +340,13 @@ function restart() {
     Game.counters.levelCounter = 0;
     Game.counters.mileage = 540;
     Game.counters.building = 0;
+    Game.counters.night = 255;
     Game.settings.mileageX = -100;
     Game.settings.currentMileage = 0;
     Game.settings.gameOn = false;
     Game.settings.levelOn = false;
     Game.settings.buildingFrequency = 1;
+    Game.settings.night = false;
 }
 
 function setDefaultGameSettings() {
@@ -324,6 +358,10 @@ function setDefaultGameSettings() {
     Game.settings.ceiling = Game.settings.defaults.ceilingDef;
     Game.settings.wallMin = Game.settings.defaults.wallMinDef;
     Game.settings.wallMax = Game.settings.defaults.wallMaxDef;
+
+    Game.settings.backgroundColor = Game.settings.defaults.backgroundColor;
+    Game.settings.buildingColor = Game.settings.defaults.buildingColor;
+    Game.settings.buildingOutlineColor = Game.settings.defaults.buildingOutlineColor;
 }
 
 function isObjectCollidingWithWalls(arg) {
@@ -396,8 +434,8 @@ function increaseScoreIfPlayerIsAlive() {
 }
 
 function generateYPosition(arg) {
-    var derp = Math.random() * (Game.canvas.height - Game.settings.floor - arg.sizeY - Game.settings.ceiling);
-    return derp + Game.settings.ceiling;
+    var y = Math.random() * (Game.canvas.height - Game.settings.floor - arg.sizeY - Game.settings.ceiling);
+    return y + Game.settings.ceiling;
 }
 
 function updateCoins() {

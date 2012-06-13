@@ -39,7 +39,7 @@ function loadAssets() {
 
 function drawBackground() {
     // Colour background in grey
-    Game.context.fillStyle = '#E6E6E6';
+    Game.context.fillStyle = Game.settings.backgroundColor;
     Game.context.fillRect(0, 0, Game.canvas.width, Game.canvas.height - Game.settings.floor);
 
     // Draw policy expert logo
@@ -83,9 +83,9 @@ function drawClouds() {
 }
 
 function drawBuilding(arg) {
-    Game.context.strokeStyle = '#CCCCCC';
+    Game.context.strokeStyle = Game.settings.buildingOutlineColor;
     Game.context.strokeRect(arg.currentPositionX, Game.canvas.height - Game.settings.floor, arg.sizeX, -arg.sizeY);
-    Game.context.fillStyle = '#DDDDDD';
+    Game.context.fillStyle = Game.settings.buildingColor;
     Game.context.fillRect(arg.currentPositionX, Game.canvas.height - Game.settings.floor, arg.sizeX, -arg.sizeY);
 }
 
@@ -200,8 +200,8 @@ function drawHint() {
         Game.context.fillText("Total coins collected: " + Game.counters.totalCoins, Game.canvas.width / 2, Game.canvas.height / 2 + 20);
         Game.context.fillText("Press SPACE to restart", Game.canvas.width / 2, Game.canvas.height / 2 + 60);
          } else {
-        Game.context.fillText("Press the 'UP' arrow key to stay in the air", Game.canvas.width / 1.5, Game.canvas.height - 25);
-        Game.context.fillText("Move side to side with the 'LEFT' and 'RIGHT' arrow keys", Game.canvas.width / 1.5, Game.canvas.height - 5);
+        Game.context.fillText("Press the 'UP' arrow key to stay in the air", Game.canvas.width / 1.5 - 10, Game.canvas.height - 25);
+        Game.context.fillText("Move side to side with the 'LEFT' and 'RIGHT' arrow keys", Game.canvas.width / 1.5 - 10, Game.canvas.height - 5);
     }
 }
 

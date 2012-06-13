@@ -25,6 +25,10 @@ Game.settings = {
     borderIncrease: 30,
     buildingFrequency: 1,
     cloudFrequency: 750,
+    backgroundColor: '#E6E6E6',
+    buildingColor: '#DDDDDD',
+    buildingOutlineColor: '#CCCCCC',
+    night: false,
     fps: 60,
     debug: {
         drawFrame: 0,
@@ -54,11 +58,15 @@ Game.settings = {
         wallWidthDef: 15,
         borderIncrease: 20,
         buildingFrequency: 1,
-        cloudFrequency: 750
+        cloudFrequency: 750,
+        backgroundColor: '#E6E6E6',
+        buildingColor: '#DDDDDD',
+        buildingOutlineColor: '#CCCCCC',
+        night: false
     },
     textDefaults: {
         colour: '#CD007A',
-        font: 'bold 20px calibri',
+        font: 'bold 20px sans-serif',
         align: 'center'
     },
     text: {
@@ -97,7 +105,8 @@ Game.counters = {
     borderCounter: 0,
     mileage: 540,
     building: 0,
-    cloud: 0
+    cloud: 0,
+    night: 255
 };
 
 Game.assets = {
