@@ -28,6 +28,7 @@ window.addEventListener('keyup', function(event) {
 }, false);
 window.addEventListener('keydown', function(event) {
     Key.onKeydown(event);
+    event.preventDefault();
 }, false);
 
 function ifSpaceBarPressedAndPlayerDeadRestartGame() {
