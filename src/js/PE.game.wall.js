@@ -20,8 +20,8 @@ Wall.prototype.generateSize = function() {
 
     // Ensure there is a gap big enough for the player to fit through
     var freeSpace = Game.canvas.height - Game.settings.ceiling - Game.settings.floor;
-    if ((freeSpace - wallSize) < (Game.objects.player.sizeY * 3)) {
-        wallSize = freeSpace - (Game.objects.player.sizeY * 3);
+    if ((freeSpace - wallSize) < (Game.objects.player.sizeY * 2.5)) {
+        wallSize = freeSpace - (Game.objects.player.sizeY * 2.5);
     }
 
     return wallSize;
