@@ -37,7 +37,7 @@ Game.settings = {
         drawFrame: 0,
         updateFrame: 0,
         debugOn: false,
-        debugEnabled: false
+        debugEnabled: true
     },
     smoke: {
         smokeFrequency: 1,

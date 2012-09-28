@@ -19,4 +19,10 @@
         'score' => $score
     ));
 
+    //array.sort(function(a,b){return a.score - b.score});
+    //array.reverse();
+    //array.splice(25, 1);
+
     file_put_contents('scores.json', json_encode($json));
+
+?>

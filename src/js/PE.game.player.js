@@ -137,10 +137,17 @@ Player.prototype.applyAirResistance = function() {
     if (this.currentVelocityX > 0) {
         this.currentVelocityX -= Game.settings.resistance;
     }
+
+    if (this.currentVelocityX < 0 && this.currentVelocityX > -0.16) {
+        this.currentVelocityX = 0;
+    }
+     if (this.currentVelocityX > 0 && this.currentVelocityX < 0.16) {
+        this.currentVelocityX = 0;
+    }
 }
 
 Player.prototype.destroy = function() {
-    if (this.alive) {
+    /*if (this.alive) {
         var nameBox = document.getElementById('playerName');
         hiScores[hiScores.length] = new hiScore(nameBox.value, Game.counters.score);
 
@@ -149,7 +156,7 @@ Player.prototype.destroy = function() {
         hiScores.reverse();
 
         hiScores.splice(25, 1);
-    }
+    }*/
 
     this.alive = false;
     Game.settings.text.getReady = false;
