@@ -5,6 +5,9 @@ var Game = { };
 Game.canvas = document.getElementById("canvas");
 Game.context = Game.canvas.getContext("2d");
 
+Game.scoresCanvas = document.getElementById("scores");
+Game.scoresContext = Game.scoresCanvas.getContext("2d");
+
 Game.settings = {
     currentMileage: 0,
     mileageX: -100,
@@ -106,7 +109,8 @@ Game.counters = {
     mileage: 540,
     building: 0,
     cloud: 0,
-    night: 255
+    night: 255,
+    pause: false
 };
 
 Game.assets = {
@@ -115,55 +119,65 @@ Game.assets = {
 };
 
 loadAssets();
-//Game.canvas.tabIndex = 1;
 
 // Time step control ***************************************************************************************************************
 
 var run = (function () {
-    var loops = 0, skipTicks = 1000 / Game.settings.fps,
-        maxFrameSkip = 10,
-        nextGameTick = (new Date).getTime();
+    
+        var loops = 0, skipTicks = 1000 / Game.settings.fps,
+            maxFrameSkip = 10,
+            nextGameTick = (new Date).getTime();
 
-    return function () {
-        loops = 0;
+        return function () {
 
-        while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
-            update();
-            nextGameTick += skipTicks;
-            loops++;
-        }
+            loops = 0;
 
-        draw();
-    };
+            while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
+                    draw();
+                    nextGameTick += skipTicks;
+                    loops++;
+            }
+            update();      
+        };
 })();
 
 // Only draw when there is something to draw
 (function () {
-    var onEachFrame;
-    if (window.webkitRequestAnimationFrame) {
-        onEachFrame = function (cb) {
-            var _cb = function () {
-                cb();
-                webkitRequestAnimationFrame(_cb);
+        var onEachFrame;
+        if (window.webkitRequestAnimationFrame) {
+            onEachFrame = function (cb) {
+                var _cb = function () {
+                    cb();
+                    webkitRequestAnimationFrame(_cb);
+                }
+                _cb();
+            };
+        } else if (window.mozRequestAnimationFrame) {
+            onEachFrame = function (cb) {
+                var _cb = function () {
+                    cb();
+                    mozRequestAnimationFrame(_cb);
+                }
+                _cb();
+            };
+        } else {
+            onEachFrame = function (cb) {
+                setInterval(cb, 1000 / Game.settings.fps);
             }
-            _cb();
-        };
-    } else if (window.mozRequestAnimationFrame) {
-        onEachFrame = function (cb) {
-            var _cb = function () {
-                cb();
-                mozRequestAnimationFrame(_cb);
-            }
-            _cb();
-        };
-    } else {
-        onEachFrame = function (cb) {
-            setInterval(cb, 1000 / Game.settings.fps);
         }
-    }
 
-    window.onEachFrame = onEachFrame;
+        window.onEachFrame = onEachFrame;
 })();
 
 // Start the game
 window.onEachFrame(run);
+
+window.onblur = function() { 
+    Game.counters.pause = true; 
+    console.log("paused: " + Game.counters.pause);
+};
+
+window.onfocus = function() { 
+    Game.counters.pause = false; 
+    console.log("not paused: " + Game.counters.pause);
+};

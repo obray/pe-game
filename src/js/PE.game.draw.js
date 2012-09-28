@@ -21,11 +21,32 @@ function draw() {
 
     drawAllText();
 
+    drawHighScores();
+
     if (Game.settings.debug.debugOn) {
         drawDebugInfo();
     }
 
     Game.context.stroke(); // Update the canvas
+}
+
+function drawHighScores() {
+    Game.scoresContext.fillStyle = Game.settings.backgroundColor;
+    Game.scoresContext.fillRect(0, 0, Game.scoresCanvas.width, Game.scoresCanvas.height);
+
+    Game.scoresContext.font = Game.settings.textDefaults.font;
+    Game.scoresContext.textAlign = "middle";
+    Game.scoresContext.fillStyle = Game.settings.textDefaults.colour;
+    Game.scoresContext.fillText("Hi-scores", Game.scoresCanvas.width / 3, 20);
+
+    for (var i = 3; i < 23; i++) {
+        Game.scoresContext.textAlign = "right";
+        Game.scoresContext.fillText(i - 2, 40, i * 20);
+        Game.scoresContext.textAlign = "left";
+        Game.scoresContext.fillText("PlayerName", 60, i * 20);
+        Game.scoresContext.fillText("99999 ", Game.scoresCanvas.width - 80, i * 20);
+    }
+
 }
 
 function loadAssets() {
