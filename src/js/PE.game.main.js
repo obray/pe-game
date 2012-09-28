@@ -32,7 +32,7 @@ Game.settings = {
     buildingColor: '#DDDDDD',
     buildingOutlineColor: '#CCCCCC',
     night: false,
-    fps: 60,
+    fps: 30,
     debug: {
         drawFrame: 0,
         updateFrame: 0,
@@ -110,7 +110,7 @@ Game.counters = {
     building: 0,
     cloud: 0,
     night: 255,
-    pause: false
+    pause: true
 };
 
 Game.assets = {
@@ -120,7 +120,28 @@ Game.assets = {
 
 loadAssets();
 
+// High score stuff
+
+function hiScore(arg1, arg2) {
+    this.playerName = arg1;
+    this.score = arg2;
+}
+var hiScores = new Array();
+hiScores[hiScores.length] = new hiScore("Olly", 1);
+
 // Time step control ***************************************************************************************************************
+
+var prev_frame_tick;
+var curr_frame_tick;
+
+/*    while( !Game.counters.pause ) {
+        prev_frame_tick = curr_frame_tick;
+        curr_frame_tick = (new Date).getTime();
+
+        update( curr_frame_tick - prev_frame_tick );
+        draw();
+    }
+})();
 
 var run = (function () {
     
@@ -130,14 +151,29 @@ var run = (function () {
 
         return function () {
 
-            loops = 0;
+                loops = 0;
 
-            while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
-                    draw();
-                    nextGameTick += skipTicks;
-                    loops++;
+                while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
+                        update();
+                        nextGameTick += skipTicks;
+                        loops++;
+                }
+                draw();      
+        };
+})();*/
+
+var run = (function () {
+
+        return function () {
+
+            if (Game.counters.pause) {
+                prev_frame_tick = curr_frame_tick;
+                curr_frame_tick = (new Date).getTime();
+
+                update(curr_frame_tick - prev_frame_tick);
+                draw();
             }
-            update();      
+               
         };
 })();
 
@@ -173,11 +209,11 @@ var run = (function () {
 window.onEachFrame(run);
 
 window.onblur = function() { 
-    Game.counters.pause = true; 
+    Game.counters.pause = false; 
     console.log("paused: " + Game.counters.pause);
 };
 
 window.onfocus = function() { 
-    Game.counters.pause = false; 
+    Game.counters.pause = true; 
     console.log("not paused: " + Game.counters.pause);
 };

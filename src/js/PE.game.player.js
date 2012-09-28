@@ -140,6 +140,17 @@ Player.prototype.applyAirResistance = function() {
 }
 
 Player.prototype.destroy = function() {
+    if (this.alive) {
+        var nameBox = document.getElementById('playerName');
+        hiScores[hiScores.length] = new hiScore(nameBox.value, Game.counters.score);
+
+        // Sort the array here
+        hiScores.sort(function(a,b){return a.score - b.score});
+        hiScores.reverse();
+
+        hiScores.splice(25, 1);
+    }
+
     this.alive = false;
     Game.settings.text.getReady = false;
     Game.settings.text.levelClear = false;

@@ -1,4 +1,4 @@
-function update() {
+function update(arg) {
     if (Game.settings.debug.debugEnabled) { Game.settings.debug.updateFrame++; } // Increase the update cycle counter
 
     if (shouldANewLevelBeStarted()) {

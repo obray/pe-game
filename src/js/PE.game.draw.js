@@ -39,14 +39,13 @@ function drawHighScores() {
     Game.scoresContext.fillStyle = Game.settings.textDefaults.colour;
     Game.scoresContext.fillText("Hi-scores", Game.scoresCanvas.width / 3, 20);
 
-    for (var i = 3; i < 23; i++) {
+    for (var i = 0; i < hiScores.length; i++) {
         Game.scoresContext.textAlign = "right";
-        Game.scoresContext.fillText(i - 2, 40, i * 20);
+        Game.scoresContext.fillText(i + 1, 40, (i + 1) * 20 + 30);
         Game.scoresContext.textAlign = "left";
-        Game.scoresContext.fillText("PlayerName", 60, i * 20);
-        Game.scoresContext.fillText("99999 ", Game.scoresCanvas.width - 80, i * 20);
+        Game.scoresContext.fillText(hiScores[i].playerName, 60, (i + 1) * 20 + 30);
+        Game.scoresContext.fillText(hiScores[i].score, Game.scoresCanvas.width - 80, (i + 1)* 20 + 30);
     }
-
 }
 
 function loadAssets() {

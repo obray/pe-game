@@ -27,8 +27,10 @@ window.addEventListener('keyup', function(event) {
     Key.onKeyup(event);
 }, false);
 window.addEventListener('keydown', function(event) {
+        if (event.keyCode == 38 || event.keyCode == 40 || event.keyCode == 32) {
+            event.preventDefault();    
+        }
     Key.onKeydown(event);
-    event.preventDefault();
 }, false);
 
 function ifSpaceBarPressedAndPlayerDeadRestartGame() {
